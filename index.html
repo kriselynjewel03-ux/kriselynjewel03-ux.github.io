@@ -354,7 +354,7 @@ function pickLevel(){
   LVL.filter(([k])=>oks.includes(k)).forEach(([k,n])=>{
     const b=document.createElement("button");b.className="pill opt";
     b.innerHTML="<b></b><br><small></small>";
-    b.querySelector("b").textContent=n;b.querySelector("small").textContent=LD[gsel][k];
+    b.querySelector("b").textContent=n;b.querySelector("small").textContent=(band()===0?LDK:LD)[gsel][k];
     b.onclick=()=>{lvl=k;lvChips();$("gl").hidden=false;run()};
     $("lv").appendChild(b);
   });
@@ -364,7 +364,7 @@ gChips();
 chips($("gt"),[[0,"🌍 Mixed"],[1,"🇵🇭 Filipino"],[2,"🔬 Science"],[3,"🍜 Food & music"]],()=>topic,k=>{topic=k;if(gsel===4&&!$("gl").hidden)run()});
 
 function mem(){
-  const E=["🍎","🐱","🌻","🚀","🎸","🍰","🦋","⚽","🍕","🐼","🎲","🌈","🐙","🎨","🍩","🌙","🐢","🎧","🚲","🍉","🦄","⛄","🔔","🍄"].sort(()=>Math.random()-.5).slice(0,[6,8,12][lvl]);
+  const E=["🍎","🐱","🌻","🚀","🎸","🍰","🦋","⚽","🍕","🐼","🎲","🌈","🐙","🎨","🍩","🌙","🐢","🎧","🚲","🍉","🦄","⛄","🔔","🍄"].sort(()=>Math.random()-.5).slice(0,(band()===0?[4,6,8]:[6,8,12])[lvl]);
   const d=[...E,...E].sort(()=>Math.random()-.5);
   let open=[],moves=0,found=0,lock=false;
   G.innerHTML='<div class="info"><span id="mm">Moves: 0</span><span id="mb"></span></div><div class="grid" id="mg"></div>';
@@ -394,7 +394,7 @@ function pat(){
   let seq=[],step=0,play=false;
   G.innerHTML='<div class="info"><span id="pr">Round: 0</span><span id="pm">Press start</span></div><div class="pads" id="pp"></div><button class="pill main" id="ps" style="margin-top:14px">Start</button>';
   const P=C.map((c,i)=>{const b=document.createElement("button");b.className="pad";b.style.background=c;b.setAttribute("aria-label","Pad "+(i+1));b.onclick=()=>tap(i);$("pp").appendChild(b);return b});
-  const flash=i=>new Promise(r=>{P[i].classList.add("lit");setTimeout(()=>{P[i].classList.remove("lit");setTimeout(r,[200,150,90][lvl])},[550,400,260][lvl])});
+  const flash=i=>new Promise(r=>{P[i].classList.add("lit");setTimeout(()=>{P[i].classList.remove("lit");setTimeout(r,(band()===0?[300,250,200]:[200,150,90])[lvl])},(band()===0?[800,650,500]:[550,400,260])[lvl])});
   async function round(){
     play=false;seq.push(Math.floor(Math.random()*4));step=0;
     $("pr").textContent="Round: "+seq.length;$("pm").textContent="Watch…";
@@ -409,7 +409,7 @@ function pat(){
     if(i!==seq[step]){play=false;const r=seq.length-1;S.best.pat=S.best.pat||[0,0,0];S.best.pat[lvl]=Math.max(S.best.pat[lvl]||0,r);award(Math.max(0,r)*[2,3,5][lvl],"focus");if(r>0)addChallenge("Pattern recall","round "+r);$("pm").textContent="Missed! You reached round "+r+" (best "+S.best.pat[lvl]+") 💪";$("ps").disabled=false;$("ps").textContent="Try again";return}
     if(++step===seq.length){play=false;$("pm").textContent="Nice! ✨";setTimeout(round,700)}
   }
-  $("ps").onclick=()=>{seq=Array.from({length:[0,0,2][lvl]},()=>Math.floor(Math.random()*4));$("ps").disabled=true;round()};
+  $("ps").onclick=()=>{seq=Array.from({length:(band()===0?[0,0,1]:[0,0,2])[lvl]},()=>Math.floor(Math.random()*4));$("ps").disabled=true;round()};
 }
 
 const seenW=new Set();
@@ -453,7 +453,11 @@ function mth(){
   const R=n=>Math.floor(Math.random()*n);
   function gen(){
     const a=R(9)+3,b=R(9)+3,c=R(8)+2;
-    if(band()===0){const x=R(6)+1,y=R(6)+1;return R(2)?[x+" + "+y,x+y]:[(x+y)+" − "+x,y]}
+    if(band()===0){
+      const m=[6,10,20][lvl],x=R(m)+1,y=R(m)+1;
+      if(lvl===2&&R(3)===0){const u=[2,5,10][R(3)],v=R(5)+1;return[u+" × "+v,u*v]}
+      return R(2)?[x+" + "+y,x+y]:[(x+y)+" − "+x,y];
+    }
     if(lvl===0){const x=R(20)+1,y=R(20)+1;return R(2)?[x+" + "+y,x+y]:[(x+y)+" − "+x,y]}
     if(lvl===1){const x=R(70)+20,y=R(70)+20,m=R(4);return m===0?[a+" × "+b,a*b]:m===1?[x+" + "+y,x+y]:m===2?[(x+y)+" − "+y,x]:[(a*b)+" ÷ "+a,b]}
     const k=R(6),x=R(400)+400,y=R(300)+50,n=R(15)+11,q=R(12)+6,d=R(9)+3,p=[10,20,25,50][R(4)],base=(R(10)+2)*20;
@@ -470,7 +474,7 @@ function mth(){
   mi.onkeydown=e=>{
     if(e.key!=="Enter"||mi.value.trim()==="")return;
     if(+mi.value===q[1]){sc++;cmb++;if(cmb%5===0)t+=3;$("ms").textContent="Score: "+sc;$("mm2").textContent="";ask()}
-    else{cmb=0;if(lvl>0&&--lives<=0)t=1;$("mm2").textContent="Try again 🤔"+(lvl>0?" ❤️ "+Math.max(lives,0):"");mi.select()}
+    else{cmb=0;if(lvl>0&&band()>0&&--lives<=0)t=1;$("mm2").textContent="Try again 🤔"+(lvl>0&&band()>0?" ❤️ "+Math.max(lives,0):"");mi.select()}
   };
   ask();
 }
@@ -606,7 +610,7 @@ function mys(){
   }
 }
 function rush(){
-  const N=[9,16,25][lvl],cols=[3,4,5][lvl];
+  const N=(band()===0?[9,12,16]:[9,16,25])[lvl],cols=(band()===0?[3,3,4]:[3,4,5])[lvl];
   const nums=Array.from({length:N},(_,i)=>i+1).sort(()=>Math.random()-.5);
   let next=1,t0=0,iv=null;
   S.best.rush=S.best.rush||[0,0,0];
@@ -640,7 +644,7 @@ function tri(){
   const B=[[["Which planet is known as the Red Planet?","Mars",["Venus","Jupiter","Mercury"]],["How many continents are there?","7",["5","6","8"]],["What is the capital of Japan?","Tokyo",["Seoul","Beijing","Bangkok"]],["What is the largest animal on Earth?","Blue whale",["Elephant","Giraffe","Great white shark"]],["Which ocean is the largest?","Pacific",["Atlantic","Indian","Arctic"]],["What is the capital of the Philippines?","Manila",["Cebu","Davao","Quezon City"]]],
   [["Who painted the Mona Lisa?","Leonardo da Vinci",["Michelangelo","Raphael","Van Gogh"]],["What is the chemical symbol for gold?","Au",["Ag","Gd","Go"]],["In which year did humans first land on the Moon?","1969",["1959","1972","1965"]],["How many bones does an adult human have?","206",["186","250","312"]],["What is the capital of Australia?","Canberra",["Sydney","Melbourne","Perth"]],["What is the national flower of the Philippines?","Sampaguita",["Sunflower","Rose","Orchid"]]],
   [["Who wrote One Hundred Years of Solitude?","Gabriel García Márquez",["Jorge Luis Borges","Isabel Allende","Pablo Neruda"]],["What is the longest river in Europe?","Volga",["Danube","Rhine","Seine"]],["In which year did the Berlin Wall fall?","1989",["1987","1991","1985"]],["What is the capital of Kazakhstan?","Astana",["Almaty","Tashkent","Bishkek"]],["Who developed the first smallpox vaccine?","Edward Jenner",["Louis Pasteur","Jonas Salk","Alexander Fleming"]],["What is the smallest prime number greater than 20?","23",["21","25","27"]]]];
-  const pool=band()===0?KT:topic===0?B[lvl].concat(TX[lvl]):TP[topic-1].filter(q=>q[3]===lvl);
+  const pool=band()===0?KTL[lvl]:topic===0?B[lvl].concat(TX[lvl]):TP[topic-1].filter(q=>q[3]===lvl);
   let fresh=pool.filter(q=>!seenQ.has(q[0]));
   if(fresh.length<5){seenQ.clear();fresh=pool}
   const Q=fresh.slice().sort(()=>Math.random()-.5).slice(0,5),my=gtoken;
@@ -650,13 +654,13 @@ function tri(){
     if(my!==gtoken)return;
     if(i>=Q.length){G.innerHTML='<p><b>Score: '+sc+' of '+Q.length+' 🎉</b></p><button class="pill main" id="again">Play again</button>';if(sc>=Math.ceil(Q.length*.8))confetti();award(sc*[10,15,25][lvl]+bonus,"knowledge");addChallenge("Trivia",sc+" of "+Q.length);$("again").onclick=tri;return}
     const [q,ok,bad]=Q[i];
-    G.innerHTML='<div class="info"><span>Question '+(i+1)+' of '+Q.length+'</span><span>'+(lvl>0?"❤️".repeat(Math.max(lives,0))+" ":"")+'🔥'+cmb+' · Score: '+sc+'</span></div><p style="font-weight:700;font-size:1.15rem"></p><div id="to"></div>';
+    G.innerHTML='<div class="info"><span>Question '+(i+1)+' of '+Q.length+'</span><span>'+(lvl>0&&band()>0?"❤️".repeat(Math.max(lives,0))+" ":"")+'🔥'+cmb+' · Score: '+sc+'</span></div><p style="font-weight:700;font-size:1.15rem"></p><div id="to"></div>';
     G.querySelector("p").textContent=q;
     [ok,...bad].sort(()=>Math.random()-.5).forEach(o=>{
       const b=document.createElement("button");b.className="pill opt";b.textContent=o;
       b.onclick=()=>{
         document.querySelectorAll("#to .opt").forEach(x=>{x.disabled=true;if(x.textContent===ok)x.classList.add("good")});
-        if(o===ok){sc++;cmb++;bonus+=cmb>1?(cmb-1)*[2,3,5][lvl]:0}else{b.classList.add("bad");cmb=0;lives--;if(lvl>0&&lives<=0)i=Q.length}
+        if(o===ok){sc++;cmb++;bonus+=cmb>1?(cmb-1)*[2,3,5][lvl]:0}else{b.classList.add("bad");cmb=0;lives--;if(lvl>0&&band()>0&&lives<=0)i=Q.length}
         i++;setTimeout(next,1100);
       };
       $("to").appendChild(b);
@@ -673,7 +677,7 @@ $("share").onclick=async()=>{
 };
 function band(){return S.age&&S.age>=16?2:S.age&&S.age>=9?1:0}
 function gOK(){return band()===0?[0,1,3,4,5,8]:[0,1,2,3,4,5,6,7,8]}
-function lvOK(){return band()===0?[0]:band()===1?[0,1]:[0,1,2]}
+function lvOK(){return band()===1?[0,1]:[0,1,2]}
 function AL(){return band()===0?KA:A}
 function surp(){const l=gOK().filter(g=>g!==5&&g!==6);return l[Math.floor(Math.random()*l.length)]}
 const KA=[
@@ -695,6 +699,11 @@ const KA=[
 const KT=[
 ["What color is the sky on a sunny day?","Blue",["Green","Red","Pink"]],["Which animal says moo?","Cow",["Dog","Cat","Duck"]],["How many days are in a week?","7",["5","10","12"]],["Which fruit is yellow and long?","Banana",["Apple","Grape","Orange"]],["What do bees make?","Honey",["Milk","Juice","Bread"]],["Which animal has a long trunk?","Elephant",["Lion","Rabbit","Cow"]],["How many legs does a dog have?","4",["2","6","8"]],["What shape is a ball?","Round",["Square","Triangle","Flat"]],["What do you use to brush your teeth?","Toothbrush",["Spoon","Comb","Shoe"]],["What comes after the number 5?","6",["4","7","9"]],["Which season is very cold and snowy?","Winter",["Summer","Spring","Rainy season"]],["Where do fish live?","In water",["In trees","In the sky","In a cave"]],["What color do you get from mixing red and yellow?","Orange",["Green","Purple","Blue"]],["What is the national fruit of the Philippines?","Mango",["Banana","Apple","Grapes"]],["How do we say thank you in Filipino?","Salamat",["Kumusta","Paalam","Pasensya"]]
 ];
+const KT2=[
+["Which planet do we live on?","Earth",["Mars","Moon","Sun"]],["How many months are in a year?","12",["10","11","13"]],["Which is the biggest animal in the ocean?","Blue whale",["Shark","Dolphin","Octopus"]],["What is 10 plus 5?","15",["14","16","20"]],["What is the capital of the Philippines?","Manila",["Cebu","Davao","Baguio"]],["Which of these can fly?","Bat",["Cow","Penguin","Dog"]]
+];
+const KTL=[KT.slice(0,6),KT.slice(6,12),KT.slice(12).concat(KT2)];
+const LDK=[["4 pairs","6 pairs","8 pairs"],["Very slow, 1 step to start","Slow","A bit faster"],["Short words","Everyday words","Long words"],["Adding up to 6","Adding and taking away up to 10","Bigger numbers and easy times tables"],["Animals and colors","Easy facts about the world","Trickier facts"],["A gentle random game","A bit harder","A bigger challenge"],null,["4 lives","3 lives","2 lives"],["3×3 grid","3×4 grid","4×4 grid"]];
 function askAge(){$("age").hidden=false;$("ageIn").value=S.age||"";$("ageMsg").textContent="";$("ageIn").focus()}
 function applyAge(){
   lvl=Math.min(lvl,Math.max(...lvOK()));gsel=-1;last=-1;gtoken++;
